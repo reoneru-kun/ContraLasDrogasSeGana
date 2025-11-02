@@ -551,6 +551,88 @@
             border: none;
             border-radius: 10px;
         }
+        
+        /* Modal para selección en móviles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 90%;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a2a6c;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.app {
+            background: linear-gradient(to right, #ff8800, #ff5500);
+            color: white;
+        }
+        
+        .modal-btn.browser {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .modal-btn.cancel {
+            background: transparent;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -558,6 +640,19 @@
         <div class="floating-element"></div>
         <div class="floating-element"></div>
         <div class="floating-element"></div>
+    </div>
+    
+    <!-- Modal para selección en móviles -->
+    <div class="modal-overlay" id="ivooxModal">
+        <div class="modal-content">
+            <div class="modal-title">Abrir iVoox</div>
+            <p>¿Cómo prefieres acceder a iVoox?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn app" id="openApp">Abrir con la App</button>
+                <button class="modal-btn browser" id="openBrowser">Continuar en el navegador</button>
+                <button class="modal-btn cancel" id="cancelAction">Cancelar</button>
+            </div>
+        </div>
     </div>
     
     <div class="card">
@@ -594,7 +689,7 @@
                     <span class="social-name">Instagram</span>
                 </a>
                 
-                <a href="https://go.ivoox.com/sq/2834050" target="_blank" class="social-link ivoox pulse">
+                <a href="https://go.ivoox.com/sq/2834050" target="_blank" class="social-link ivoox pulse" id="ivooxLink">
                     <i class="fas fa-podcast social-icon"></i>
                     <span class="social-name">iVoox</span>
                 </a>
@@ -668,7 +763,59 @@
                     this.innerHTML = '<i class="fas fa-headphones"></i> Escuchar Podcast';
                 }
             });
+            
+            // Manejo del botón de iVoox
+            const ivooxLink = document.getElementById('ivooxLink');
+            const ivooxModal = document.getElementById('ivooxModal');
+            const openAppBtn = document.getElementById('openApp');
+            const openBrowserBtn = document.getElementById('openBrowser');
+            const cancelBtn = document.getElementById('cancelAction');
+            
+            ivooxLink.addEventListener('click', function(e) {
+                // En dispositivos móviles, mostrar el modal de selección
+                if (isMobileDevice()) {
+                    e.preventDefault();
+                    ivooxModal.classList.add('active');
+                }
+                // En escritorio, abrir en nueva pestaña (comportamiento normal por target="_blank")
+            });
+            
+            // Abrir con la app de iVoox
+            openAppBtn.addEventListener('click', function() {
+                // Intentar abrir la app de iVoox
+                window.location.href = 'ivoox://show/channel/2834050';
+                
+                // Fallback: si no tiene la app, redirigir a la tienda después de un tiempo
+                setTimeout(function() {
+                    window.open('https://go.ivoox.com/sq/2834050', '_blank');
+                }, 500);
+                
+                ivooxModal.classList.remove('active');
+            });
+            
+            // Continuar en el navegador
+            openBrowserBtn.addEventListener('click', function() {
+                window.open('https://go.ivoox.com/sq/2834050', '_blank');
+                ivooxModal.classList.remove('active');
+            });
+            
+            // Cancelar acción
+            cancelBtn.addEventListener('click', function() {
+                ivooxModal.classList.remove('active');
+            });
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            ivooxModal.addEventListener('click', function(e) {
+                if (e.target === ivooxModal) {
+                    ivooxModal.classList.remove('active');
+                }
+            });
         });
+        
+        // Función para detectar dispositivos móviles
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
         
         // Función para mostrar el logo alternativo si la imagen no carga
         function showFallbackLogo() {
